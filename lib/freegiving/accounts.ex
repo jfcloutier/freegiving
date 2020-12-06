@@ -89,7 +89,7 @@ defmodule Freegiving.Accounts do
 
   """
   def change_user_registration(%User{} = user, attrs \\ %{}) do
-    User.registration_changeset(user, attrs, hash_password: false)
+    User.registration_changeset(user, attrs, hash_password: true)
   end
 
   ## Settings
@@ -345,5 +345,21 @@ defmodule Freegiving.Accounts do
       {:ok, %{user: user}} -> {:ok, user}
       {:error, :user, changeset, _} -> {:error, changeset}
     end
+  end
+
+  @doc """
+  Registers an admin
+
+  ## Examples
+    iex> register_admin(%{some_field: a_value})
+    {:ok, %User{}}
+
+    iex> register_admin(%{some_field: a_bad_value})
+    {:error, %Ecto.Changeset{}}
+  """
+  def register_admin(attrs) do
+    %User{}
+    |> User.admin_registration_changeset(attrs)
+    |> Repo.insert()
   end
 end
