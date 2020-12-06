@@ -2,6 +2,7 @@ defmodule FreegivingWeb.Router do
   use FreegivingWeb, :router
 
   import FreegivingWeb.UserAuth
+  alias FreegivingWeb.EnsureRolePlug
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -15,6 +16,14 @@ defmodule FreegivingWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+  end
+
+  pipeline :user do
+    plug EnsureRolePlug, [:admin, :user]
+  end
+
+  pipeline :admin do
+    plug EnsureRolePlug, :admin
   end
 
   scope "/", FreegivingWeb do

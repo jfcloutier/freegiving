@@ -2,7 +2,9 @@ defmodule FreegivingWeb.PageLive do
   use FreegivingWeb, :live_view
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(_params, session, socket) do
+    # Only allow authorized users in
+    socket = assign_defaults(session, socket)
     {:ok, assign(socket, query: "", results: %{})}
   end
 

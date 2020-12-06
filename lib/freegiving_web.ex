@@ -48,6 +48,7 @@ defmodule FreegivingWeb do
         layout: {FreegivingWeb.LayoutView, "live.html"}
 
       unquote(view_helpers())
+      import FreegivingWeb.LiveHelpers
     end
   end
 
