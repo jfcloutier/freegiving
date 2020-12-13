@@ -94,7 +94,7 @@ defmodule Freegiving.AccountsTest do
   end
 
   describe "register_admin/1" do
-    test “registers users with a hashed password and sets role to :admin” do
+    test "registers users with a hashed password and sets role to :admin" do
       email = unique_user_email()
       {:ok, user} = Accounts.register_admin(%{email: email, password: valid_user_password()})
       assert user.email == email

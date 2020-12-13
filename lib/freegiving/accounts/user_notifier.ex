@@ -1,13 +1,19 @@
 defmodule Freegiving.Accounts.UserNotifier do
-  # For simplicity, this module simply logs messages to the terminal.
-  # You should replace it by a proper email or notification tool, such as:
-  #
-  #   * Swoosh - https://hexdocs.pm/swoosh
-  #   * Bamboo - https://hexdocs.pm/bamboo
-  #
-  defp deliver(to, body) do
-    require Logger
-    Logger.debug(body)
+  alias Swoosh.Email
+  require Logger
+
+  defp deliver(to, subject, body) do
+    email =
+      Email.new()
+      |> Email.to(to)
+      |> Email.from({"JF Cloutier", "jean.f.cloutier@gmail.com"})
+      |> Email.reply_to("no-reply@yourgrocerycard.gives")
+      |> Email.subject(subject)
+      # |> Email.html_body(body)
+      |> Email.text_body(body)
+
+    Logger.info("Delivering email #{inspect(email)}")
+    Freegiving.Mailer.deliver!(email)
     {:ok, %{to: to, body: body}}
   end
 
@@ -15,7 +21,7 @@ defmodule Freegiving.Accounts.UserNotifier do
   Deliver instructions to confirm account.
   """
   def deliver_confirmation_instructions(user, url) do
-    deliver(user.email, """
+    deliver(user.email, "Registration confirmation", """
 
     ==============================
 
@@ -35,7 +41,7 @@ defmodule Freegiving.Accounts.UserNotifier do
   Deliver instructions to reset a user password.
   """
   def deliver_reset_password_instructions(user, url) do
-    deliver(user.email, """
+    deliver(user.email, "Resetting your password", """
 
     ==============================
 
@@ -55,7 +61,7 @@ defmodule Freegiving.Accounts.UserNotifier do
   Deliver instructions to update a user email.
   """
   def deliver_update_email_instructions(user, url) do
-    deliver(user.email, """
+    deliver(user.email, "Changing your email email", """
 
     ==============================
 

@@ -1,5 +1,4 @@
 defmodule FreegivingWeb.EnsureRolePlug do
-
   @moduledoc """
   This plug ensures that a user has a particular role before accessing a given route.
 
@@ -42,6 +41,7 @@ defmodule FreegivingWeb.EnsureRolePlug do
   defp has_role?(_user, _role), do: false
 
   defp maybe_halt(true, conn), do: conn
+
   defp maybe_halt(_any, conn) do
     conn
     |> Controller.put_flash(:error, "Unauthorised")
