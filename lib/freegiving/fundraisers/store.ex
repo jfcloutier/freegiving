@@ -5,6 +5,7 @@ defmodule Freegiving.Fundraisers.Store do
 
   schema "stores" do
     field :name, :string
+    field :short_name, :string
     field :address, :string
     has_many :fundraisers, Fundraiser
     timestamps()
@@ -12,8 +13,10 @@ defmodule Freegiving.Fundraisers.Store do
 
   def store_changeset(store, attrs) do
     store
-    |> cast(attrs, [:name, :address])
-    |> validate_required([:name, :address])
+    |> cast(attrs, [:name, :short_name, :address])
+    |> validate_required([:name, :short_name, :address])
+    |> validate_format(:short_name, ~r/^\w+$/)
     |> unique_constraint(:name)
+    |> unique_constraint(:short_name)
   end
 end

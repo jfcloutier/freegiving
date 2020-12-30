@@ -3,6 +3,8 @@ defmodule Freegiving.Accounts.User do
   import Ecto.Changeset
   import EctoEnum
 
+  alias Freegiving.Fundraisers.{Participant, FundraiserAdmin}
+
   defenum(RolesEnum, :role, [
     :user,
     :admin
@@ -15,7 +17,8 @@ defmodule Freegiving.Accounts.User do
     field :hashed_password, :string
     field :confirmed_at, :naive_datetime
     field :role, RolesEnum, default: :user
-
+    has_many :participants, Participant
+    has_many :fundraiser_admins, FundraiserAdmin
     timestamps()
   end
 
