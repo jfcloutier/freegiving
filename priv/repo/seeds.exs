@@ -42,8 +42,17 @@ Fundraisers.register_contact(%{
   phone: "207-555-1212"
 })
 
-Fundraisers.register_fundraiser(%{refill_round_min: 1000},
+Fundraisers.register_fundraiser(%{name: "CBHS PAG Hannaford gift cards", refill_round_min: 1000},
   school_name: "Casco Bay High School",
   store_name: "Hannaford",
   store_contact_email: "john.q.manager@hannaford.com"
 )
+
+{:ok, participant} =
+  Fundraisers.register_participant(%{notify_by_email: true, notify_by_tex: false},
+    contact: %{name: "JF Cloutier", email: "jean.f.cloutier@gmail.com", phone: "207-615-3049"},
+    fundraiser_name: "CBHS PAG Hannaford gift cards",
+    user_email: "jf@collaboration-planners.com"
+  )
+
+Fundraisers.add_gift_card(participant, %{card_number: "6006496950042782613"})

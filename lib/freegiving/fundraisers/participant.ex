@@ -1,15 +1,24 @@
 defmodule Freegiving.Fundraisers.Participant do
   use Ecto.Schema
   import Ecto.Changeset, warn: false
-  alias Freegiving.Fundraisers.{Fundraiser, GiftCard, Contact, Preference}
+  alias Freegiving.Fundraisers.{Fundraiser, GiftCard, Contact}
   alias Freegiving.Accounts.User
 
   schema "participants" do
+    field :notify_by_email, :boolean
+    field :notify_by_text, :boolean
     belongs_to :fundraiser, Fundraiser
     belongs_to :user, User
     belongs_to :contact, Contact
-    has_many :gift_cards, GiftCard
-    has_one :preference, Preference
+    has_many :gift_cards, GiftCard, on_replace: :nilify
     timestamps()
+  end
+
+  def changeset(participant, attrs) do
+    participant
+    |> cast(attrs, [:notify_by_email, :notify_by_text])
+    |> unique_constraint([:user_id, :fundraiser_id],
+      message: "A user can participate only one in a given fundraiser"
+    )
   end
 end

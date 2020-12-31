@@ -13,7 +13,7 @@ defmodule Freegiving.Fundraisers.RefillRound do
     timestamps()
   end
 
-  def refill_round_changeset(refill_round, attrs) do
+  def changeset(refill_round, attrs) do
     refill_round
     |> cast(attrs, [:closed_on, :executed_on])
   end

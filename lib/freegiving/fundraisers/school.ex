@@ -11,7 +11,7 @@ defmodule Freegiving.Fundraisers.School do
     timestamps()
   end
 
-  def school_changeset(school, attrs) do
+  def changeset(school, attrs) do
     school
     |> cast(attrs, [:name, :short_name, :address])
     |> validate_required([:name, :short_name, :address])

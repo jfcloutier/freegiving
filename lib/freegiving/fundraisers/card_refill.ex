@@ -11,7 +11,7 @@ defmodule Freegiving.Fundraisers.CardRefill do
     timestamps()
   end
 
-  def card_refill_changeset(card_refill, attrs) do
+  def changeset(card_refill, attrs) do
     card_refill
     |> cast(attrs, [:amount])
     |> validate_required([:amount])

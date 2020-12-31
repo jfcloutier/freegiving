@@ -13,7 +13,7 @@ defmodule Freegiving.Fundraisers.Contact do
     timestamps()
   end
 
-  def contact_changeset(contact, attrs) do
+  def changeset(contact, attrs) do
     contact
     |> cast(attrs, [:name, :email, :phone])
     |> validate_required([:name, :email, :phone])

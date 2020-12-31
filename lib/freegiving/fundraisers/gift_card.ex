@@ -10,11 +10,7 @@ defmodule Freegiving.Fundraisers.GiftCard do
     timestamps()
   end
 
-  @spec gift_card_changeset(
-          {map, map} | %{:__struct__ => atom | %{__changeset__: map}, optional(atom) => any},
-          :invalid | %{optional(:__struct__) => none, optional(atom | binary) => any}
-        ) :: Ecto.Changeset.t()
-  def gift_card_changeset(gift_card, attrs) do
+  def changeset(gift_card, attrs) do
     gift_card
     |> cast(attrs, [:card_number])
     |> validate_required([:card_number])

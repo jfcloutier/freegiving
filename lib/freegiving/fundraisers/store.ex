@@ -11,7 +11,7 @@ defmodule Freegiving.Fundraisers.Store do
     timestamps()
   end
 
-  def store_changeset(store, attrs) do
+  def changeset(store, attrs) do
     store
     |> cast(attrs, [:name, :short_name, :address])
     |> validate_required([:name, :short_name, :address])

@@ -11,7 +11,7 @@ defmodule Freegiving.Fundraisers.PaymentMethod do
     timestamps()
   end
 
-  def payment_method_changeset(payment_method, attrs) do
+  def changeset(payment_method, attrs) do
     payment_method
     |> cast(attrs, [:payable_to])
     |> validate_required([:payable_to])

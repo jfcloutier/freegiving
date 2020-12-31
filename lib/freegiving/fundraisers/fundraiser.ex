@@ -4,6 +4,7 @@ defmodule Freegiving.Fundraisers.Fundraiser do
   alias Freegiving.Fundraisers.{School, Store, RefillRound, Participant, FundraiserAdmin, Contact}
 
   schema "fundraisers" do
+    field :name, :string
     field :refill_round_min, :integer
     belongs_to :school, School
     belongs_to :store, Store
@@ -14,10 +15,11 @@ defmodule Freegiving.Fundraisers.Fundraiser do
     timestamps()
   end
 
-  def fundraiser_changeset(fundraiser, attrs) do
+  def changeset(fundraiser, attrs) do
     fundraiser
-    |> cast(attrs, [:refill_round_min])
-    |> validate_required([:refill_round_min])
+    |> cast(attrs, [:name, :refill_round_min])
+    |> validate_required([:name, :refill_round_min])
     |> validate_number(:refill_round_min, greater_than: 0)
+    |> unique_constraint(:name)
   end
 end
