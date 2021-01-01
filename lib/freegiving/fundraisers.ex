@@ -3,7 +3,17 @@ defmodule Freegiving.Fundraisers do
 
   import Ecto.Query, warn: false
   alias Freegiving.Repo
-  alias Freegiving.Fundraisers.{School, Store, Contact, Fundraiser, Participant, GiftCard}
+
+  alias Freegiving.Fundraisers.{
+    School,
+    Store,
+    Contact,
+    Fundraiser,
+    Participant,
+    GiftCard,
+    RefillRound
+  }
+
   alias Freegiving.Accounts.User
 
   def register_school(attrs) do
@@ -44,9 +54,16 @@ defmodule Freegiving.Fundraisers do
     contact = Repo.get_by(Contact, email: store_contact_email)
 
     if store != nil and school != nil and contact != nil do
-      %Fundraiser{school_id: school.id, store_id: store.id, store_contact_id: contact.id}
-      |> Fundraiser.changeset(attrs)
-      |> Repo.insert()
+      Repo.transaction(fn ->
+        fundraiser =
+          %Fundraiser{school_id: school.id, store_id: store.id, store_contact_id: contact.id}
+          |> Fundraiser.changeset(attrs)
+          |> Repo.insert!()
+
+        insert_refill_round!(fundraiser)
+
+        {:ok, fundraiser}
+      end)
     else
       {:error, :failed}
     end
@@ -98,5 +115,26 @@ defmodule Freegiving.Fundraisers do
         |> Repo.preload(:gift_cards)
         |> Repo.preload(:contact)
     end
+  end
+
+  def close_current_refill_round(%Fundraiser{} = fundraiser) do
+    Repo.transaction(fn ->
+      loaded_fundraiser = Repo.preload(fundraiser, :refill_rounds)
+      refill_round = Enum.find(loaded_fundraiser.refill_rounds, &(&1.closed_on == nil))
+
+      refill_round
+      |> Repo.preload(:fundraiser)
+      |> Repo.preload(:card_refills)
+      |> RefillRound.changeset(%{closed_on: DateTime.utc_now() |> DateTime.to_string()})
+      |> Repo.update!()
+
+      insert_refill_round!(fundraiser)
+    end)
+  end
+
+  defp insert_refill_round!(fundraiser) do
+    Ecto.build_assoc(fundraiser, :refill_rounds)
+    |> RefillRound.changeset(%{})
+    |> Repo.insert!()
   end
 end
