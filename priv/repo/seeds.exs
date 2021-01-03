@@ -36,23 +36,40 @@ Fundraisers.register_store(%{
   address: "145 Pleasant Hill Road, Scarborough, ME 04074"
 })
 
+Fundraisers.register_payment_service(%{
+  name: "PayPal",
+  url: "www.paypal.com"
+})
+
 Fundraisers.register_contact(%{
   name: "John Q. Manager",
   email: "john.q.manager@hannaford.com",
   phone: "207-555-1212"
 })
 
-Fundraisers.register_fundraiser(%{name: "CBHS PAG Hannaford gift cards", refill_round_min: 1000},
+{:ok, fundraiser} = Fundraisers.register_fundraiser(
+  %{name: "CBHS PAG Hannaford gift cards", refill_round_min: 1000, card_refill_max: 500},
   school_name: "Casco Bay High School",
   store_name: "Hannaford",
   store_contact_email: "john.q.manager@hannaford.com"
 )
 
+Fundraisers.register_payment_method(%{payable_to: "dev@yourgrocerycardgives.com"},
+  fundraiser_id: fundraiser.id,
+  payment_service_name: "PayPal"
+)
+
 {:ok, participant} =
-  Fundraisers.register_participant(%{notify_by_email: true, notify_by_tex: false},
+  Fundraisers.register_participant(%{notify_by_email: true, notify_by_text: false},
     contact: %{name: "JF Cloutier", email: "jean.f.cloutier@gmail.com", phone: "207-615-3049"},
     fundraiser_name: "CBHS PAG Hannaford gift cards",
     user_email: "jf@collaboration-planners.com"
   )
 
 Fundraisers.add_gift_card(participant, %{card_number: "6006496950042782613"})
+
+{:ok, card_refill} =
+  Fundraisers.request_card_refill(%{amount: 500},
+    card_number: "6006496950042782613",
+    payment_service_name: "PayPal"
+  )

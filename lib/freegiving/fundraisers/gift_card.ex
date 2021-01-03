@@ -7,6 +7,7 @@ defmodule Freegiving.Fundraisers.GiftCard do
     field :card_number, :string
     belongs_to :participant, Participant
     has_many :card_refills, CardRefill
+    has_one :fundraiser, through: [:participant, :fundraiser]
     timestamps()
   end
 

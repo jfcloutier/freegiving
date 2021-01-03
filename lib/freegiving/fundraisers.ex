@@ -7,11 +7,14 @@ defmodule Freegiving.Fundraisers do
   alias Freegiving.Fundraisers.{
     School,
     Store,
+    PaymentService,
+    PaymentMethod,
     Contact,
     Fundraiser,
     Participant,
     GiftCard,
-    RefillRound
+    RefillRound,
+    CardRefill
   }
 
   alias Freegiving.Accounts.User
@@ -25,6 +28,12 @@ defmodule Freegiving.Fundraisers do
   def register_store(attrs) do
     %Store{}
     |> Store.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  def register_payment_service(attrs) do
+    %PaymentService{}
+    |> PaymentService.changeset(attrs)
     |> Repo.insert()
   end
 
@@ -62,11 +71,22 @@ defmodule Freegiving.Fundraisers do
 
         insert_refill_round!(fundraiser)
 
-        {:ok, fundraiser}
+        fundraiser
       end)
     else
       {:error, :failed}
     end
+  end
+
+  def register_payment_method(attrs,
+        fundraiser_id: fundraiser_id,
+        payment_service_name: payment_service_name
+      ) do
+    payment_service = Repo.one(PaymentService, name: payment_service_name)
+
+    %PaymentMethod{fundraiser_id: fundraiser_id, payment_service_id: payment_service.id}
+    |> PaymentMethod.changeset(attrs)
+    |> Repo.insert()
   end
 
   def register_participant(attrs,
@@ -77,7 +97,7 @@ defmodule Freegiving.Fundraisers do
     user = Repo.get_by(User, email: user_email)
     fundraiser = Repo.get_by(Fundraiser, name: fundraiser_name)
 
-    if user != nil and fundraiser != nil do
+    if user != nil and fundraiser != nil and fundraiser.active do
       case register_contact_if_new(contact_attrs) do
         {:ok, contact} ->
           %Participant{fundraiser_id: fundraiser.id, user_id: user.id, contact_id: contact.id}
@@ -90,9 +110,13 @@ defmodule Freegiving.Fundraisers do
   end
 
   def add_gift_card(%Participant{} = participant, attrs) do
-    Ecto.build_assoc(participant, :gift_cards)
-    |> GiftCard.changeset(attrs)
-    |> Repo.insert()
+    if participant.active do
+      Ecto.build_assoc(participant, :gift_cards)
+      |> GiftCard.changeset(attrs)
+      |> Repo.insert()
+    else
+      {:error, :failed}
+    end
   end
 
   def get_participant(fundraiser_name: fundraiser_name, user_email: user_email) do
@@ -119,10 +143,7 @@ defmodule Freegiving.Fundraisers do
 
   def close_current_refill_round(%Fundraiser{} = fundraiser) do
     Repo.transaction(fn ->
-      loaded_fundraiser = Repo.preload(fundraiser, :refill_rounds)
-      refill_round = Enum.find(loaded_fundraiser.refill_rounds, &(&1.closed_on == nil))
-
-      refill_round
+      current_refill_round(fundraiser)
       |> Repo.preload(:fundraiser)
       |> Repo.preload(:card_refills)
       |> RefillRound.changeset(%{closed_on: DateTime.utc_now() |> DateTime.to_string()})
@@ -132,9 +153,54 @@ defmodule Freegiving.Fundraisers do
     end)
   end
 
+  def request_card_refill(attrs,
+        card_number: card_number,
+        payment_service_name: payment_service_name
+      ) do
+    Repo.transaction(fn ->
+      gift_card = Repo.one(GiftCard, card_number: card_number)
+      card_refill_with_fundraiser = Repo.preload(gift_card, :fundraiser)
+      fundraiser_id = card_refill_with_fundraiser.fundraiser.id
+      fundraiser_active!(fundraiser_id)
+      payment_method = payment_method(fundraiser_id, payment_service_name)
+      current_refill_round = current_refill_round(fundraiser_id)
+
+      %CardRefill{
+        gift_card_id: gift_card.id,
+        refill_round_id: current_refill_round.id,
+        payment_method_id: payment_method.id
+      }
+      |> CardRefill.changeset(attrs)
+      |> Repo.insert()
+    end)
+  end
+
+  defp fundraiser_active!(fundraiser_id) do
+    fundraiser = Repo.one(Fundraiser, id: fundraiser_id)
+
+    if fundraiser == nil or not fundraiser.active do
+      raise("Not an active fundraiser")
+    else
+      :ok
+    end
+  end
+
+  defp current_refill_round(fundraiser_id) do
+    loaded_fundraiser =
+      Repo.one(Fundraiser, id: fundraiser_id)
+      |> Repo.preload(:refill_rounds)
+
+    Enum.find(loaded_fundraiser.refill_rounds, &(&1.closed_on == nil))
+  end
+
   defp insert_refill_round!(fundraiser) do
     Ecto.build_assoc(fundraiser, :refill_rounds)
     |> RefillRound.changeset(%{})
     |> Repo.insert!()
+  end
+
+  defp payment_method(fundraiser_id, payment_service_name) do
+    payment_service = Repo.one(PaymentService, name: payment_service_name)
+    Repo.one(PaymentMethod, payment_service_id: payment_service.id, fundraiser_id: fundraiser_id)
   end
 end

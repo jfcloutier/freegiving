@@ -7,6 +7,7 @@ defmodule Freegiving.Fundraisers.Participant do
   schema "participants" do
     field :notify_by_email, :boolean
     field :notify_by_text, :boolean
+    field :active, :boolean, default: true
     belongs_to :fundraiser, Fundraiser
     belongs_to :user, User
     belongs_to :contact, Contact
@@ -16,7 +17,7 @@ defmodule Freegiving.Fundraisers.Participant do
 
   def changeset(participant, attrs) do
     participant
-    |> cast(attrs, [:notify_by_email, :notify_by_text])
+    |> cast(attrs, [:active, :notify_by_email, :notify_by_text])
     |> unique_constraint([:user_id, :fundraiser_id],
       message: "A user can participate only one in a given fundraiser"
     )
