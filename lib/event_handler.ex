@@ -20,7 +20,7 @@ defmodule Freegiving.EventHandler do
     {:ok, %{}}
   end
 
-  def handle_info({:event, {_event_type, _payload} = event}, state) do
+  def handle_info({:event, _event_type, _payload} = event, state) do
     Logger.info("Handling event #{inspect(event)}")
     {:noreply, state}
   end

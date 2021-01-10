@@ -164,8 +164,10 @@ defmodule Freegiving.Fundraisers do
     end
   end
 
-  def close_current_refill_round(%Fundraiser{} = fundraiser) do
+  def close_current_refill_round(fundraiser_id) do
     Repo.transaction(fn ->
+      fundraiser = Repo.one(Fundraiser, id: fundraiser_id)
+
       refill_round =
         current_refill_round(fundraiser)
         |> Repo.preload(:fundraiser)
