@@ -19,7 +19,7 @@ defmodule Freegiving.Fundraisers.Participant do
     participant
     |> cast(attrs, [:active, :notify_by_email, :notify_by_text])
     |> unique_constraint([:user_id, :fundraiser_id],
-      message: "A user can participate only one in a given fundraiser"
+      message: "A user can participate only once in a given fundraiser"
     )
   end
 end

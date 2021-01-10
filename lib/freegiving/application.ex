@@ -13,10 +13,10 @@ defmodule Freegiving.Application do
       FreegivingWeb.Telemetry,
       # Start the PubSub system
       {Phoenix.PubSub, name: Freegiving.PubSub},
+      # Start the event handler
+      Freegiving.EventHandler,
       # Start the Endpoint (http/https)
       FreegivingWeb.Endpoint
-      # Start a worker by calling: Freegiving.Worker.start_link(arg)
-      # {Freegiving.Worker, arg}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
