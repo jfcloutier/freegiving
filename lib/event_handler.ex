@@ -5,9 +5,8 @@ defmodule Freegiving.EventHandler do
 
   use GenServer
   alias Phoenix.PubSub
+  alias Freegiving.Services.{RefillRoundService, ErrorService}
   require Logger
-
-  @pubsub_channels ~w(crud app)
 
   def start_link(_) do
     GenServer.start(__MODULE__, nil)
@@ -16,23 +15,27 @@ defmodule Freegiving.EventHandler do
   ### CALLBACKS
 
   def init(_) do
-    subscribe_all(@pubsub_channels)
+    PubSub.subscribe(Freegiving.PubSub, "freegiving")
     {:ok, %{}}
   end
 
+  def handle_info({:event, :refill_round_closed, refill_round}, state) do
+    RefillRoundService.refill_round_closed(refill_round)
+    {:noreply, state}
+  end
+
+  def handle_info({:event, :error, error}, state) do
+    ErrorService.report_error(error)
+    {:noreply, state}
+  end
+
   def handle_info({:event, _event_type, _payload} = event, state) do
-    Logger.info("Handling event #{inspect(event)}")
+    Logger.info("IGNORING EVENT #{inspect(event)}")
     {:noreply, state}
   end
 
   def handle_info(info, state) do
     Logger.info("IGNORING INFO #{inspect(info)}")
     {:noreply, state}
-  end
-
-  ### Private
-
-  defp subscribe_all(channels) do
-    Enum.each(channels, &PubSub.subscribe(Freegiving.PubSub, &1))
   end
 end

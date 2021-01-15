@@ -43,8 +43,14 @@ Fundraisers.register_payment_service(%{
 
 Fundraisers.register_contact(%{
   name: "John Q. Manager",
-  email: "john.q.manager@hannaford.com",
+  email: "dev@yourgrocerycard.gives",
   phone: "207-555-1212"
+})
+
+Fundraisers.register_contact(%{
+  name: "Jean-Francois Cloutier",
+  email: "jean.f.cloutier@gmail.com",
+  phone: "207-615-3049"
 })
 
 {:ok, fundraiser} =
@@ -52,8 +58,14 @@ Fundraisers.register_contact(%{
     %{name: "CBHS PAG Hannaford gift cards", refill_round_min: 1000, card_refill_max: 500},
     school_name: "Casco Bay High School",
     store_name: "Hannaford",
-    store_contact_email: "john.q.manager@hannaford.com"
+    store_contact_email: "dev@yourgrocerycard.gives"
   )
+
+Fundraisers.register_fundraiser_admin(%{
+  fundraiser_id: fundraiser.id,
+  user_email: "jean.f.cloutier@gmail.com",
+  contact: %{name: "JF Cloutier", email: "jean.f.cloutier@gmail.com", phone: "207-615-3049"}
+})
 
 Fundraisers.register_payment_method(%{payable_to: "dev@yourgrocerycardgives.com"},
   fundraiser_id: fundraiser.id,
@@ -63,7 +75,7 @@ Fundraisers.register_payment_method(%{payable_to: "dev@yourgrocerycardgives.com"
 {:ok, participant} =
   Fundraisers.register_participant(%{notify_by_email: true, notify_by_text: false},
     contact: %{name: "JF Cloutier", email: "jean.f.cloutier@gmail.com", phone: "207-615-3049"},
-    fundraiser_name: "CBHS PAG Hannaford gift cards",
+    fundraiser_id: fundraiser.id,
     user_email: "jf@collaboration-planners.com"
   )
 

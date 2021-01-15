@@ -362,4 +362,8 @@ defmodule Freegiving.Accounts do
     |> User.admin_registration_changeset(attrs)
     |> Repo.insert()
   end
+
+  def admin_user_emails() do
+    Repo.all(User, role: :admin) |> Enum.map(& &1.email)
+  end
 end

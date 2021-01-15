@@ -8,5 +8,6 @@ defmodule Freegiving.Fundraisers.FundraiserAdmin do
     belongs_to :contact, Contact
     belongs_to :fundraiser, Fundraiser
     belongs_to :user, User
+    timestamps()
   end
 end

@@ -6,7 +6,7 @@ defmodule Freegiving.Accounts.UserNotifier do
     email =
       Email.new()
       |> Email.to(to)
-      |> Email.from({"JF Cloutier", "jean.f.cloutier@gmail.com"})
+      |> Email.from({"Dev", "dev@yourgrocerycard.gives"})
       |> Email.reply_to("no-reply@yourgrocerycard.gives")
       |> Email.subject(subject)
       # |> Email.html_body(body)

@@ -25,4 +25,5 @@ defmodule Freegiving.Fundraisers.Fundraiser do
     |> validate_number(:card_refill_max, greater_than: 0)
     |> unique_constraint(:name)
   end
-end
+
+ end

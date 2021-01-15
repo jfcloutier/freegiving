@@ -15,4 +15,6 @@ alias Freegiving.Fundraisers.{
 
 alias Freegiving.Accounts.User
 
-alias Freegiving.{Repo, Fundraisers}
+alias Freegiving.{Repo, Fundraisers, Error}
+
+alias Freegiving.Services.{ErrorService}
