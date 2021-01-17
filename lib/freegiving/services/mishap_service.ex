@@ -1,15 +1,15 @@
-defmodule Freegiving.Services.ErrorService do
+defmodule Freegiving.Services.MishapService do
   @moduledoc """
-  Error reporting.
+  Mishap reporting.
   """
 
-  alias Freegiving.{Error, Mailer}
+  alias Freegiving.{Mishap, Mailer}
   alias Freegiving.Accounts
   alias Swoosh.Email
   require Logger
 
-  def report_error(%Error{doing: doing, with: arguments, causing: cause} = error) do
-    Logger.warn("Reporting error #{inspect(error)}")
+  def report_mishap(%Mishap{doing: doing, with: arguments, causing: cause} = mishap) do
+    Logger.warn("Reporting mishap #{inspect(mishap)}")
 
     admin_emails = Accounts.admin_user_emails()
 
@@ -19,7 +19,7 @@ defmodule Freegiving.Services.ErrorService do
     now = DateTime.utc_now() |> DateTime.to_string()
 
     body = """
-    Error
+    Mishap
     =====
 
     doing: #{inspect(doing)}
@@ -34,7 +34,7 @@ defmodule Freegiving.Services.ErrorService do
       |> Email.to(admin_emails)
       |> Email.from({"Dev", "dev@yourgrocerycard.gives"})
       |> Email.reply_to("no-reply@yourgrocerycard.gives")
-      |> Email.subject("Error doing #{inspect(doing)}")
+      |> Email.subject("Mishap doing #{inspect(doing)}")
       |> Email.text_body(body)
 
     Mailer.deliver!(email)

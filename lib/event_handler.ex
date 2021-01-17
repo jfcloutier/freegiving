@@ -5,7 +5,7 @@ defmodule Freegiving.EventHandler do
 
   use GenServer
   alias Phoenix.PubSub
-  alias Freegiving.Services.{RefillRoundService, ErrorService}
+  alias Freegiving.Services.{RefillRoundService, MishapService}
   require Logger
 
   def start_link(_) do
@@ -24,8 +24,8 @@ defmodule Freegiving.EventHandler do
     {:noreply, state}
   end
 
-  def handle_info({:event, :error, error}, state) do
-    ErrorService.report_error(error)
+  def handle_info({:event, :mishap, mishap}, state) do
+    MishapService.report_mishap(mishap)
     {:noreply, state}
   end
 

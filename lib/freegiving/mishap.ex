@@ -1,6 +1,6 @@
-defmodule Freegiving.Error do
+defmodule Freegiving.Mishap do
   @moduledoc """
-  Data about an error.
+  Data about a mishap.
   """
 
   defstruct doing: nil, with: [], causing: nil

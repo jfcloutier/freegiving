@@ -55,7 +55,7 @@ Fundraisers.register_contact(%{
 
 {:ok, fundraiser} =
   Fundraisers.register_fundraiser(
-    %{name: "CBHS PAG Hannaford gift cards", refill_round_min: 1000, card_refill_max: 500},
+    %{name: "CBHS-PAG", refill_round_min: 1000, card_refill_max: 500},
     school_name: "Casco Bay High School",
     store_name: "Hannaford",
     store_contact_email: "dev@yourgrocerycard.gives"
@@ -64,7 +64,8 @@ Fundraisers.register_contact(%{
 Fundraisers.register_fundraiser_admin(%{
   fundraiser_id: fundraiser.id,
   user_email: "jean.f.cloutier@gmail.com",
-  contact: %{name: "JF Cloutier", email: "jean.f.cloutier@gmail.com", phone: "207-615-3049"}
+  contact: %{name: "JF Cloutier", email: "jean.f.cloutier@gmail.com", phone: "207-615-3049"},
+  primary: true
 })
 
 Fundraisers.register_payment_method(%{payable_to: "dev@yourgrocerycardgives.com"},

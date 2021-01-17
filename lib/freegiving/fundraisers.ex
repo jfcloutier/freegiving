@@ -134,7 +134,8 @@ defmodule Freegiving.Fundraisers do
   def register_fundraiser_admin(%{
         fundraiser_id: fundraiser_id,
         user_email: user_email,
-        contact: contact_attrs
+        contact: contact_attrs,
+        primary: primary?
       }) do
     pub(:added) do
       Repo.transaction(fn ->
@@ -143,6 +144,7 @@ defmodule Freegiving.Fundraisers do
         {:ok, contact} = register_contact_if_new(contact_attrs)
 
         %FundraiserAdmin{fundraiser_id: fundraiser.id, user_id: user.id, contact_id: contact.id}
+        |> FundraiserAdmin.changeset(%{primary: primary?})
         |> Repo.insert!()
       end)
     end

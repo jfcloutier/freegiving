@@ -5,6 +5,7 @@ defmodule Freegiving.Fundraisers.GiftCard do
 
   schema "gift_cards" do
     field :card_number, :string
+    field :active, :boolean, default: false
     belongs_to :participant, Participant
     has_many :card_refills, CardRefill
     has_one :fundraiser, through: [:participant, :fundraiser]
@@ -13,7 +14,7 @@ defmodule Freegiving.Fundraisers.GiftCard do
 
   def changeset(gift_card, attrs) do
     gift_card
-    |> cast(attrs, [:card_number])
+    |> cast(attrs, [:card_number, :active])
     |> validate_required([:card_number])
     |> unique_constraint(:card_number)
   end
