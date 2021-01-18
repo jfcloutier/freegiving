@@ -5,7 +5,7 @@ defmodule Freegiving.EventHandler do
 
   use GenServer
   alias Phoenix.PubSub
-  alias Freegiving.Services.{RefillRoundService, MishapService}
+  alias Freegiving.Services.{RefillRoundService, GiftCardService, MishapService}
   require Logger
 
   def start_link(_) do
@@ -21,6 +21,11 @@ defmodule Freegiving.EventHandler do
 
   def handle_info({:event, :refill_round_closed, refill_round}, state) do
     RefillRoundService.refill_round_closed(refill_round)
+    {:noreply, state}
+  end
+
+  def handle_info({:event, :gift_card_assigned, gift_card}, state) do
+    GiftCardService.gift_card_assigned(gift_card)
     {:noreply, state}
   end
 

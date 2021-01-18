@@ -1,4 +1,4 @@
-# Script for populating the database. You can run it as:
+# Script for testing populating the database. You can run it as:
 #
 #     mix run priv/repo/seeds.exs
 #
@@ -50,23 +50,34 @@ Fundraisers.register_contact(%{
 Fundraisers.register_contact(%{
   name: "Jean-Francois Cloutier",
   email: "jean.f.cloutier@gmail.com",
-  phone: "207-615-3049"
+  phone: "207-615-3049",
+  address: "32 Sawyer St, Portland, ME, 04103"
 })
 
 {:ok, fundraiser} =
   Fundraisers.register_fundraiser(
-    %{name: "CBHS-PAG", refill_round_min: 1000, card_refill_max: 500},
+    %{
+      name: "CBHS-PAG",
+      refill_round_min: 1000,
+      card_refill_max: 500,
+      card_reserve_low_mark: 1,
+      card_reserve_max: 5
+    },
     school_name: "Casco Bay High School",
     store_name: "Hannaford",
     store_contact_email: "dev@yourgrocerycard.gives"
   )
 
-Fundraisers.register_fundraiser_admin(%{
-  fundraiser_id: fundraiser.id,
-  user_email: "jean.f.cloutier@gmail.com",
-  contact: %{name: "JF Cloutier", email: "jean.f.cloutier@gmail.com", phone: "207-615-3049"},
-  primary: true
-})
+Fundraisers.register_gift_card(%{card_number: "6006496950042782613"}, fundraiser_id: fundraiser.id)
+
+Fundraisers.register_fundraiser_admin(
+  %{
+    user_email: "jean.f.cloutier@gmail.com",
+    contact: %{name: "JF Cloutier", email: "jean.f.cloutier@gmail.com", phone: "207-615-3049"},
+    primary: true
+  },
+  fundraiser_id: fundraiser.id
+)
 
 Fundraisers.register_payment_method(%{payable_to: "dev@yourgrocerycardgives.com"},
   fundraiser_id: fundraiser.id,
@@ -80,7 +91,11 @@ Fundraisers.register_payment_method(%{payable_to: "dev@yourgrocerycardgives.com"
     user_email: "jf@collaboration-planners.com"
   )
 
-Fundraisers.add_gift_card(participant, %{card_number: "6006496950042782613"})
+{:ok, assigned_gift_card} =
+  Fundraisers.assign_gift_card(%{},
+    card_number: "6006496950042782613",
+    participant_id: participant.id
+  )
 
 {:ok, card_refill} =
   Fundraisers.request_card_refill(%{amount: 500},

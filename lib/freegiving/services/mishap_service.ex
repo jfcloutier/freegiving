@@ -24,7 +24,7 @@ defmodule Freegiving.Services.MishapService do
 
     doing: #{inspect(doing)}
     with: #{arguments_text}
-    cause: #{inspect(cause)}
+    causing: #{inspect(cause)}
 
     #{now}
     """

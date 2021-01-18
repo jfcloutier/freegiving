@@ -7,6 +7,7 @@ defmodule Freegiving.Fundraisers.Contact do
     field :name, :string, null: false
     field :email, :string, null: false
     field :phone, :string, null: false
+    field :address, :string
     has_many :store_contacts, Fundraiser, foreign_key: :store_contact_id
     has_many :participants, Participant
     has_many :fundraiser_admins, FundraiserAdmin
@@ -15,7 +16,7 @@ defmodule Freegiving.Fundraisers.Contact do
 
   def changeset(contact, attrs) do
     contact
-    |> cast(attrs, [:name, :email, :phone])
+    |> cast(attrs, [:name, :email, :phone, :address])
     |> validate_required([:name, :email, :phone])
     |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
     |> validate_format(:phone, ~r/^\d\d\d-\d\d\d-\d\d\d\d$/,

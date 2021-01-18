@@ -3,6 +3,7 @@ defmodule Freegiving.Fundraisers do
 
   import Ecto.Query, warn: false
   alias Freegiving.Repo
+  require Logger
 
   use Freegiving.Eventing
 
@@ -91,6 +92,16 @@ defmodule Freegiving.Fundraisers do
     end
   end
 
+  def register_gift_card(attrs, fundraiser_id: fundraiser_id) do
+    pub(:added) do
+      fundraiser = Repo.get_by(Fundraiser, id: fundraiser_id)
+
+      Ecto.build_assoc(fundraiser, :gift_cards)
+      |> GiftCard.changeset(attrs)
+      |> Repo.insert()
+    end
+  end
+
   def register_payment_method(attrs,
         fundraiser_id: fundraiser_id,
         payment_service_name: payment_service_name
@@ -131,12 +142,14 @@ defmodule Freegiving.Fundraisers do
     end
   end
 
-  def register_fundraiser_admin(%{
-        fundraiser_id: fundraiser_id,
-        user_email: user_email,
-        contact: contact_attrs,
-        primary: primary?
-      }) do
+  def register_fundraiser_admin(
+        %{
+          user_email: user_email,
+          contact: contact_attrs,
+          primary: primary?
+        },
+        fundraiser_id: fundraiser_id
+      ) do
     pub(:added) do
       Repo.transaction(fn ->
         user = Repo.get_by!(User, email: user_email)
@@ -150,14 +163,21 @@ defmodule Freegiving.Fundraisers do
     end
   end
 
-  def add_gift_card(%Participant{} = participant, attrs) do
-    pub(:added) do
-      if participant.active do
-        Ecto.build_assoc(participant, :gift_cards)
+  def assign_gift_card(attrs, card_number: card_number, participant_id: participant_id) do
+    pub(:gift_card_assigned) do
+      participant = Repo.get_by(Participant, id: participant_id)
+      gift_card = Repo.get_by(GiftCard, card_number: card_number)
+
+      if participant != nil and gift_card != nil and participant.active do
+        gift_card
+        |> Repo.preload(:participant)
         |> GiftCard.changeset(attrs)
-        |> Repo.insert()
+        |> Ecto.Changeset.put_assoc(:participant, participant)
+        |> Repo.update()
       else
-        {:error, :failed}
+        reason = "Failed to assign gift card #{card_number} to participant #{participant_id}"
+        Logger.warn(reason)
+        {:error, reason}
       end
     end
   end
@@ -209,7 +229,7 @@ defmodule Freegiving.Fundraisers do
     pub(:added) do
       Repo.transaction(fn ->
         gift_card = Repo.get_by(GiftCard, card_number: card_number)
-        participant_active!(gift_card.participant_id)
+        gift_card_participant_active!(gift_card)
         card_refill_with_fundraiser = Repo.preload(gift_card, :fundraiser)
         fundraiser_id = card_refill_with_fundraiser.fundraiser.id
         fundraiser_active!(fundraiser_id)
@@ -263,13 +283,17 @@ defmodule Freegiving.Fundraisers do
     end
   end
 
-  defp participant_active!(participant_id) do
-    participant = Repo.get_by(Participant, id: participant_id)
-
-    if participant == nil or not participant.active do
-      raise("Not an active participant")
+  defp gift_card_participant_active!(gift_card) do
+    if gift_card.participant_id == nil do
+      raise("Gift card not assigned to a participant")
     else
-      :ok
+      participant = Repo.get_by(Participant, id: gift_card.participant_id)
+
+      if participant == nil or not participant.active do
+        raise("Not an active participant")
+      else
+        :ok
+      end
     end
   end
 

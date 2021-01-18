@@ -17,5 +17,4 @@ defmodule Freegiving.Fundraisers.RefillRound do
     refill_round
     |> cast(attrs, [:closed_on, :executed_on])
   end
-
- end
+end

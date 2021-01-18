@@ -5,8 +5,12 @@ defmodule Freegiving.Services.RefillRoundService do
 
   use Freegiving.Eventing
   alias Freegiving.{Mishap, Repo, Mailer}
-  alias Freegiving.Fundraisers.{RefillRound, Fundraiser}
+  alias Freegiving.Fundraisers.RefillRound
   alias Swoosh.{Email, Attachment}
+
+  import Freegiving.Services.Utils,
+    only: [acting_primary_admin_and_others: 1, month_name: 1, fundraiser_with_store_contact: 1]
+
   require Logger
 
   def refill_round_closed(%RefillRound{fundraiser_id: fundraiser_id} = refill_round) do
@@ -22,17 +26,12 @@ defmodule Freegiving.Services.RefillRoundService do
 
     if number_of_cards > 0 do
       with {:ok, csv} <- make_csv(card_refills),
-           {:ok, fundraiser} <- fundraiser_with_store_contact(fundraiser_id),
-           {:ok, primary_admin} <-
-             acting_primary_admin(fundraiser) do
-        other_admins =
-          for fundraiser_admin <- fundraiser.fundraiser_admins,
-              fundraiser_admin.id != primary_admin.id do
-            Repo.preload(fundraiser_admin, :contact)
-          end
-
+           {:ok, fundraiser, store_contact} <- fundraiser_with_store_contact(fundraiser_id),
+           {:ok, primary_admin, other_admins} <-
+             acting_primary_admin_and_others(fundraiser) do
         data = %{
           fundraiser: fundraiser,
+          store_contact: store_contact,
           primary_admin: primary_admin,
           other_admins: other_admins,
           number_of_cards: number_of_cards,
@@ -54,19 +53,6 @@ defmodule Freegiving.Services.RefillRoundService do
         with: [refill_round],
         causing: "No card refill with an non-zero amount"
       })
-    end
-  end
-
-  defp fundraiser_with_store_contact(fundraiser_id) do
-    fundraiser =
-      Repo.get_by(Fundraiser, id: fundraiser_id)
-      |> Repo.preload(:fundraiser_admins)
-      |> Repo.preload(:store_contact)
-
-    if fundraiser.store_contact != nil do
-      {:ok, fundraiser}
-    else
-      {:error, "No store contact for fundraiser #{fundraiser_id}"}
     end
   end
 
@@ -94,14 +80,6 @@ defmodule Freegiving.Services.RefillRoundService do
     end
   end
 
-  # data = %{
-  #   fundraiser: fundraiser,
-  #   primary_admin: primary_admin,
-  #   other_admins: other_admins,
-  #   number_of_cards: number_of_cards,
-  #   total_amount: total_amount
-  # }
-
   defp email_csv(data, csv) do
     body = """
     Please process the attached bulk reload file.  There should be #{data.number_of_cards} cards for a total of $#{
@@ -125,50 +103,19 @@ defmodule Freegiving.Services.RefillRoundService do
 
     email =
       Email.new()
-      |> Email.to({data.fundraiser.store_contact.name, data.fundraiser.store_contact.email})
+      |> Email.to({data.store_contact.name, data.store_contact.email})
       |> Email.cc(cc)
       |> Email.from({data.primary_admin.contact.name, data.primary_admin.contact.email})
       |> Email.subject("Bulk Reload File")
       |> Email.text_body(body)
       |> Email.attachment(attachment)
 
+    Logger.info("Sending email #{inspect(email)}")
     Mailer.deliver!(email)
-  end
-
-  # Find a fundraiser's admin that's a primary, or else any admin for the fundraiser
-  # Fail if no one
-  defp acting_primary_admin(fundraiser) do
-    case fundraiser.fundraiser_admins do
-      [] ->
-        {:error, "No fundraiser admins to send CSV from in fundraiser #{fundraiser.id}"}
-
-      fundraiser_admins ->
-        acting_primary =
-          case Enum.filter(fundraiser_admins, & &1.primary) do
-            [] -> Enum.random(fundraiser_admins)
-            primaries -> Enum.random(primaries)
-          end
-          |> Repo.preload(:contact)
-
-        {:ok, acting_primary}
-    end
   end
 
   defp filename() do
     date = DateTime.utc_now() |> DateTime.to_date()
-    "#{month_name(date.month)} #{date.year}.csv"
+    "#{month_name(date.month)} #{date.day} #{date.year}.csv"
   end
-
-  defp month_name(1), do: "January"
-  defp month_name(2), do: "February"
-  defp month_name(3), do: "March"
-  defp month_name(4), do: "April"
-  defp month_name(5), do: "May"
-  defp month_name(6), do: "June"
-  defp month_name(7), do: "July"
-  defp month_name(8), do: "August"
-  defp month_name(9), do: "September"
-  defp month_name(10), do: "October"
-  defp month_name(11), do: "November"
-  defp month_name(12), do: "December"
 end

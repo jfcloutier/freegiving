@@ -11,7 +11,7 @@ defmodule Freegiving.Fundraisers.Participant do
     belongs_to :fundraiser, Fundraiser
     belongs_to :user, User
     belongs_to :contact, Contact
-    has_many :gift_cards, GiftCard, on_replace: :nilify
+    has_many :gift_cards, GiftCard
     timestamps()
   end
 
