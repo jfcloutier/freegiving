@@ -91,9 +91,9 @@ Fundraisers.register_payment_method(%{payable_to: "dev@yourgrocerycardgives.com"
     user_email: "jf@collaboration-planners.com"
   )
 
+  # TODO - find an unassigned card to assign. If none, fail.
 {:ok, assigned_gift_card} =
   Fundraisers.assign_gift_card(%{},
-    card_number: "6006496950042782613",
     participant_id: participant.id
   )
 

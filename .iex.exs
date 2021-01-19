@@ -1,3 +1,6 @@
+
+import Ecto.Query, warn: false
+
 alias Freegiving.Fundraisers.{
   School,
   Store,

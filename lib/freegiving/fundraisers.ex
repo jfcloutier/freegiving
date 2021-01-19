@@ -163,22 +163,37 @@ defmodule Freegiving.Fundraisers do
     end
   end
 
-  def assign_gift_card(attrs, card_number: card_number, participant_id: participant_id) do
+  def assign_gift_card(attrs, participant_id: participant_id) do
     pub(:gift_card_assigned) do
-      participant = Repo.get_by(Participant, id: participant_id)
-      gift_card = Repo.get_by(GiftCard, card_number: card_number)
+      Repo.transaction(fn ->
+        participant = Repo.get_by(Participant, id: participant_id)
 
-      if participant != nil and gift_card != nil and participant.active do
-        gift_card
-        |> Repo.preload(:participant)
-        |> GiftCard.changeset(attrs)
-        |> Ecto.Changeset.put_assoc(:participant, participant)
-        |> Repo.update()
-      else
-        reason = "Failed to assign gift card #{card_number} to participant #{participant_id}"
-        Logger.warn(reason)
-        {:error, reason}
-      end
+        case Repo.all(
+               from gc in "gift_cards",
+                 where: gc.fundraiser_id == ^participant.fundraiser_id,
+                 where: is_nil(gc.participant_id),
+                 select: [:card_number]
+             ) do
+          [] ->
+            reason = "All gift cards for fundraiser #{participant.fundraiser_id} have been assigned"
+            Repo.rollback(reason)
+            {:error, reason}
+
+          [answer | _] ->
+            if participant.active do
+              Repo.get_by(GiftCard, card_number: answer.card_number)
+              |> Repo.preload(:participant)
+              |> GiftCard.changeset(attrs)
+              |> Ecto.Changeset.put_assoc(:participant, participant)
+              |> Repo.update!()
+            else
+              reason = "Failed to assign gift card to inactive participant #{participant_id}"
+              Logger.warn(reason)
+              Repo.rollback(reason)
+              {:error, reason}
+            end
+        end
+      end)
     end
   end
 
