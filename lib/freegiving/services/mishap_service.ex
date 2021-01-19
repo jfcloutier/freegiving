@@ -32,7 +32,7 @@ defmodule Freegiving.Services.MishapService do
     email =
       Email.new()
       |> Email.to(admin_emails)
-      |> Email.from({"Dev", "dev@yourgrocerycard.gives"})
+      |> Email.from({"Freegiving", "freegiving@yourgrocerycard.gives"})
       |> Email.reply_to("no-reply@yourgrocerycard.gives")
       |> Email.subject("Mishap doing #{inspect(doing)}")
       |> Email.text_body(body)

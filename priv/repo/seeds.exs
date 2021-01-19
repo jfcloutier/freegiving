@@ -43,7 +43,7 @@ Fundraisers.register_payment_service(%{
 
 Fundraisers.register_contact(%{
   name: "John Q. Manager",
-  email: "dev@yourgrocerycard.gives",
+  email: "test@yourgrocerycard.gives",
   phone: "207-555-1212"
 })
 
@@ -65,7 +65,7 @@ Fundraisers.register_contact(%{
     },
     school_name: "Casco Bay High School",
     store_name: "Hannaford",
-    store_contact_email: "dev@yourgrocerycard.gives"
+    store_contact_email: "test@yourgrocerycard.gives"
   )
 
 Fundraisers.register_gift_card(%{card_number: "6006496950042782613"}, fundraiser_id: fundraiser.id)
