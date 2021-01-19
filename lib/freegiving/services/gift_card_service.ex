@@ -29,8 +29,8 @@ defmodule Freegiving.Services.GiftCardService do
       |> Enum.filter(&(&1.participant_id == nil))
       |> Enum.count()
 
-    # TODO - Only when we reach the threshold, else resupply requested continually
-    if reserve_count <= fundraiser.card_reserve_low_mark do
+    # Only when we reach the threshold, or empty, else resupply requested continually
+    if reserve_count == 0 or reserve_count == fundraiser.card_reserve_low_mark do
       Logger.info(
         "Fundraiser #{fundraiser.id} has #{fundraiser.card_reserve_low_mark} unassigned cards. Ordering re-supply."
       )
