@@ -70,7 +70,6 @@ defmodule Freegiving.Services.GiftCardService do
   end
 
   defp email_card_resupply(data) do
-
     body = """
     Please send #{data.number_of_cards} inactive gift cards at your earliest convenience to
 

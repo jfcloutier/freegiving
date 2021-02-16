@@ -4,7 +4,7 @@ defmodule Freegiving.Services.RefillRoundService do
   """
 
   use Freegiving.Eventing
-  alias Freegiving.{Mishap, Repo, Mailer}
+  alias Freegiving.{Mishap, Repo, Mailer, Fundraisers}
   alias Freegiving.Fundraisers.RefillRound
   alias Swoosh.{Email, Attachment}
 
@@ -13,7 +13,26 @@ defmodule Freegiving.Services.RefillRoundService do
 
   require Logger
 
+  def close_current_refill_round(fundraiser_id) do
+    pub(:refill_round_closed) do
+      Repo.transaction(fn ->
+        fundraiser = Repo.get_by(Fundraiser, id: fundraiser_id)
+
+        closed_refill_round =
+          Fundraisers.current_refill_round(fundraiser)
+          |> Repo.preload(:fundraiser)
+          |> Repo.preload(:card_refills)
+          |> RefillRound.changeset(%{closed_on: DateTime.utc_now() |> DateTime.to_string()})
+          |> Repo.update!()
+
+        Fundraisers.start_new_refill_round!(fundraiser)
+        closed_refill_round
+      end)
+    end
+  end
+
   def refill_round_closed(%RefillRound{fundraiser_id: fundraiser_id} = refill_round) do
+    Logger.info("Refill round closed. Sending refill request.")
     # make a CSV from the refill requests
     # send an email to the store contact, cc to fundraiser admins
     card_refills =
@@ -22,6 +41,7 @@ defmodule Freegiving.Services.RefillRoundService do
       |> Enum.map(&Repo.preload(&1, :gift_card))
 
     number_of_cards = Enum.count(card_refills)
+    number_of_new_cards = Enum.filter(card_refills, &(not &1.gift_card.active)) |> Enum.count()
     total_amount = card_refills |> Enum.map(& &1.amount) |> Enum.sum()
 
     if number_of_cards > 0 do
@@ -35,6 +55,7 @@ defmodule Freegiving.Services.RefillRoundService do
           primary_admin: primary_admin,
           other_admins: other_admins,
           number_of_cards: number_of_cards,
+          number_of_new_cards: number_of_new_cards,
           total_amount: total_amount
         }
 
@@ -51,7 +72,7 @@ defmodule Freegiving.Services.RefillRoundService do
       publish(:mishap, %Mishap{
         doing: "No card refill in refill round",
         with: [refill_round],
-        causing: "No card refill with an non-zero amount"
+        causing: "No card refill with a non-zero amount"
       })
     end
   end
@@ -85,7 +106,8 @@ defmodule Freegiving.Services.RefillRoundService do
     Please process the attached bulk reload file.  There should be #{data.number_of_cards} cards for a total of $#{
       data.total_amount
     }.00 (prior to discount).
-    Please note there are three cards that are new and will need to be activated as well.
+
+    Please note there are #{data.number_of_new_cards} cards that are new and will need to be activated as well.
 
     I can be reached at #{data.primary_admin.contact.phone} for payment.
 

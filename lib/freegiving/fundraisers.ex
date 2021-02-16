@@ -163,6 +163,7 @@ defmodule Freegiving.Fundraisers do
     end
   end
 
+  # attrs contains name, else name defaults to "My gift card"
   def assign_gift_card(attrs, participant_id: participant_id) do
     pub(:gift_card_assigned) do
       Repo.transaction(fn ->
@@ -175,7 +176,9 @@ defmodule Freegiving.Fundraisers do
                  select: [:card_number]
              ) do
           [] ->
-            reason = "All gift cards for fundraiser #{participant.fundraiser_id} have been assigned"
+            reason =
+              "All gift cards for fundraiser #{participant.fundraiser_id} have been assigned"
+
             Repo.rollback(reason)
             {:error, reason}
 
@@ -216,24 +219,6 @@ defmodule Freegiving.Fundraisers do
         Repo.get_by(Participant, id: participant_id)
         |> Repo.preload(:gift_cards)
         |> Repo.preload(:contact)
-    end
-  end
-
-  def close_current_refill_round(fundraiser_id) do
-    pub(:refill_round_closed) do
-      Repo.transaction(fn ->
-        fundraiser = Repo.get_by(Fundraiser, id: fundraiser_id)
-
-        closed_refill_round =
-          current_refill_round(fundraiser)
-          |> Repo.preload(:fundraiser)
-          |> Repo.preload(:card_refills)
-          |> RefillRound.changeset(%{closed_on: DateTime.utc_now() |> DateTime.to_string()})
-          |> Repo.update!()
-
-        start_new_refill_round!(fundraiser)
-        closed_refill_round
-      end)
     end
   end
 
@@ -288,6 +273,24 @@ defmodule Freegiving.Fundraisers do
     end
   end
 
+  def start_new_refill_round!(fundraiser) do
+    pub(:refill_round_started) do
+      Ecto.build_assoc(fundraiser, :refill_rounds)
+      |> RefillRound.changeset(%{})
+      |> Repo.insert!()
+    end
+  end
+
+  def current_refill_round(fundraiser_id) do
+    loaded_fundraiser =
+      Repo.get_by(Fundraiser, id: fundraiser_id)
+      |> Repo.preload(:refill_rounds)
+
+    Enum.find(loaded_fundraiser.refill_rounds, &(&1.closed_on == nil))
+  end
+
+  ### PRIVATE
+
   defp fundraiser_active!(fundraiser_id) do
     fundraiser = Repo.get_by(Fundraiser, id: fundraiser_id)
 
@@ -309,22 +312,6 @@ defmodule Freegiving.Fundraisers do
       else
         :ok
       end
-    end
-  end
-
-  defp current_refill_round(fundraiser_id) do
-    loaded_fundraiser =
-      Repo.get_by(Fundraiser, id: fundraiser_id)
-      |> Repo.preload(:refill_rounds)
-
-    Enum.find(loaded_fundraiser.refill_rounds, &(&1.closed_on == nil))
-  end
-
-  defp start_new_refill_round!(fundraiser) do
-    pub(:refill_round_started) do
-      Ecto.build_assoc(fundraiser, :refill_rounds)
-      |> RefillRound.changeset(%{})
-      |> Repo.insert!()
     end
   end
 
