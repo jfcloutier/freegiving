@@ -46,6 +46,10 @@ defmodule Freegiving.Services.Utils do
     end
   end
 
+  def utc_ts() do
+    DateTime.utc_now() |> DateTime.to_string()
+  end
+
   def month_name(1), do: "January"
   def month_name(2), do: "February"
   def month_name(3), do: "March"

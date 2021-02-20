@@ -9,7 +9,12 @@ defmodule Freegiving.Services.RefillRoundService do
   alias Swoosh.{Email, Attachment}
 
   import Freegiving.Services.Utils,
-    only: [acting_primary_admin_and_others: 1, month_name: 1, fundraiser_with_store_contact: 1]
+    only: [
+      acting_primary_admin_and_others: 1,
+      month_name: 1,
+      fundraiser_with_store_contact: 1,
+      utc_ts: 0
+    ]
 
   require Logger
 
@@ -22,7 +27,7 @@ defmodule Freegiving.Services.RefillRoundService do
           Fundraisers.current_refill_round(fundraiser)
           |> Repo.preload(:fundraiser)
           |> Repo.preload(:card_refills)
-          |> RefillRound.changeset(%{closed_on: DateTime.utc_now() |> DateTime.to_string()})
+          |> RefillRound.changeset(%{closed_on: utc_ts()})
           |> Repo.update!()
 
         Fundraisers.start_new_refill_round!(fundraiser)

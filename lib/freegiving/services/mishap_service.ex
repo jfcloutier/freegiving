@@ -6,6 +6,7 @@ defmodule Freegiving.Services.MishapService do
   alias Freegiving.{Mishap, Mailer}
   alias Freegiving.Accounts
   alias Swoosh.Email
+  import Freegiving.Services.Utils, only: [utc_ts: 0]
   require Logger
 
   def report_mishap(%Mishap{doing: doing, with: arguments, causing: cause} = mishap) do
@@ -16,7 +17,7 @@ defmodule Freegiving.Services.MishapService do
     arguments_text =
       for(argument <- arguments, do: argument_to_string(argument)) |> Enum.join("\n")
 
-    now = DateTime.utc_now() |> DateTime.to_string()
+    now = utc_ts()
 
     body = """
     Mishap

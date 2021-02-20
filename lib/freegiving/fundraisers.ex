@@ -12,6 +12,8 @@ defmodule Freegiving.Fundraisers do
     Store,
     PaymentService,
     PaymentMethod,
+    Payment,
+    PaymentNotification,
     Contact,
     Fundraiser,
     Participant,
@@ -111,6 +113,22 @@ defmodule Freegiving.Fundraisers do
 
       %PaymentMethod{fundraiser_id: fundraiser_id, payment_service_id: payment_service.id}
       |> PaymentMethod.changeset(attrs)
+      |> Repo.insert()
+    end
+  end
+
+  def register_payment_notification(attrs) do
+    pub(:added) do
+      %PaymentNotification{}
+      |> PaymentNotification.changeset(attrs)
+      |> Repo.insert()
+    end
+  end
+
+  def register_payment(attrs, payment_notification_id: payment_notification_id) do
+    pub(:added) do
+      %Payment{payment_notification_id: payment_notification_id}
+      |> Payment.changeset(attrs)
       |> Repo.insert()
     end
   end

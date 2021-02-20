@@ -4,7 +4,9 @@ defmodule Freegiving.Services.PaymentNotificationService do
   For each payment notification, try to create a payment for a card refill.
   """
 
-  alias Freegiving.Fundraisers.Payment
+  alias Freegiving.{Fundraisers, Mishap}
+  alias Freegiving.Services.MishapService
+  require Logger
 
   @doc "Called when a payment has been received."
   #
@@ -21,18 +23,89 @@ defmodule Freegiving.Services.PaymentNotificationService do
         # some unique transaction ID
         payment_locator: payment_locator
       ) do
-    # store in payments_received
-    # find the payment service from paid_from_email
-    # find the payment_method from payment service and paid_to_email (assumption: a payment service's account and its associated email serves a single fundraiser)
-    # find the fundraiser from the payment method
-    # find the participant from the paid_by and fundraiser
-    # IF ANY OF THE ABOVE FAILS, raise a mishap - an admin will need to attend to the payment received
+    # store in payment_notifications
+    {:ok, payment_notification} =
+      Fundraisers.register_payment_notification(%{
+        amount: amount,
+        paid_from_email: paid_from_email,
+        paid_to_email: paid_to_email,
+        paid_by: paid_by,
+        payment_note: payment_note,
+        payment_locator: payment_locator
+      })
 
-    # Guess the target gift card from the payment_note
-    # If guessed, find the card_refill (or create it if none found), update it to show payment received, and
-    # add payment referencing the payment received
-    # IF NO CARD IS GUESSED, raise a mishap - an admin will need to attend to the payment received
+    with {:ok, payment_service} <- find_payment_service(paid_from_email),
+         {:ok, payment_method} <- find_payment_method(payment_service, paid_to_email),
+         {:ok, fundraiser} <- find_fundraiser(payment_method),
+         {:ok, participant} <- find_participant(fundraiser, paid_by),
+         {:ok, gift_card} <- guess_gift_card(participant, payment_note),
+         {:ok, card_refill} <- find_card_refill(gift_card),
+         {:ok, payment} <-
+           Fundraisers.register_payment(
+             %{
+               amount: amount,
+               card_refill_id: card_refill.id,
+               payment_method_id: payment_method.id
+             },
+             payment_notification_id: payment_notification.id
+           ) do
+      Logger.info("Payment made #{inspect(payment)}")
+      :ok
+
+      # find the payment service from paid_from_email
+      # find the payment_method from payment service and paid_to_email (assumption: a payment service's account and its associated email serves a single fundraiser)
+      # find the fundraiser from the payment method
+      # find the participant from the paid_by and fundraiser
+      # IF ANY OF THE ABOVE FAILS, raise a mishap - an admin will need to attend to the payment received
+
+      # Guess the target gift card from the payment_note
+      # If guessed, find the card_refill (or create it if none found), update it to show payment received, and
+      # add payment referencing the payment received
+      # IF NO CARD IS GUESSED, raise a mishap - an admin will need to attend to the payment received
+    else
+      {:error, reason} ->
+        MishapService.report_mishap(%Mishap{
+          doing: "#{__MODULE__}:payment_notified",
+          with: [
+            amount: amount,
+            paid_from_email: paid_from_email,
+            paid_to_email: paid_to_email,
+            paid_by: paid_by,
+            payment_note: payment_note,
+            payment_locator: payment_locator
+          ],
+          causing: reason
+        })
+    end
   end
 
-  # TODO - Store all received payments with above data in table payments_received. Problematic payments don't reference payments.
+  defp find_payment_service(_paid_from_email) do
+    # TODO
+    {:error, :payment_service_not_found}
+  end
+
+  defp find_payment_method(_payment_service, _paid_to_email) do
+    # TODO
+    {:error, :payment_method_not_found}
+  end
+
+  defp find_fundraiser(_payment_method) do
+    # TODO
+    {:error, :fundraiser_not_found}
+  end
+
+  defp find_participant(_fundraiser, _paid_by) do
+    # TODO
+    {:error, :participant_not_found}
+  end
+
+  defp guess_gift_card(_participant, _payment_note) do
+    # TODO
+    {:error, :gift_card_not_found}
+  end
+
+  defp find_card_refill(_gift_card) do
+    # TODO
+    {:error, :card_refill_not_found}
+  end
 end
