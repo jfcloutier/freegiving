@@ -2,6 +2,9 @@ defmodule Freegiving.Fundraisers.RefillRound do
   use Ecto.Schema
   import Ecto.Changeset, warn: false
   alias Freegiving.Fundraisers.{CardRefill, Fundraiser}
+  alias __MODULE__
+  use Freegiving.Eventing
+  alias Freegiving.Repo
 
   schema "refill_rounds" do
     # when round closed
@@ -16,5 +19,13 @@ defmodule Freegiving.Fundraisers.RefillRound do
   def changeset(refill_round, attrs) do
     refill_round
     |> cast(attrs, [:closed_on, :executed_on])
+  end
+
+  def start_new_refill_round!(fundraiser) do
+    pub(:refill_round_started) do
+      Ecto.build_assoc(fundraiser, :refill_rounds)
+      |> RefillRound.changeset(%{})
+      |> Repo.insert!()
+    end
   end
 end

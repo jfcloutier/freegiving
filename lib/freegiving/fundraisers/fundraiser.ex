@@ -12,6 +12,10 @@ defmodule Freegiving.Fundraisers.Fundraiser do
     GiftCard
   }
 
+  alias __MODULE__
+  use Freegiving.Eventing
+  alias Freegiving.Repo
+
   schema "fundraisers" do
     field :name, :string
     field :active, :boolean, default: true
@@ -47,6 +51,29 @@ defmodule Freegiving.Fundraisers.Fundraiser do
     |> validate_number(:card_reserve_max, greater_than: 0)
     |> validate_reserve_bounds()
     |> unique_constraint(:name)
+  end
+
+  def make_fundraiser_active(fundraiser_id, active?) do
+    Repo.get_by(Fundraiser, id: fundraiser_id)
+    |> Fundraiser.changeset(%{active: active?})
+    |> Repo.update()
+  end
+
+  def fundraiser_active?(fundraiser_id) do
+    case Repo.get_by(Fundraiser, id: fundraiser_id) do
+      nil -> false
+      fundraiser -> fundraiser.active
+    end
+  end
+
+  def fundraiser_active!(fundraiser_id) do
+    fundraiser = Repo.get_by(Fundraiser, id: fundraiser_id)
+
+    if fundraiser == nil or not fundraiser.active do
+      raise("Not an active fundraiser")
+    else
+      :ok
+    end
   end
 
   defp validate_reserve_bounds(changeset) do

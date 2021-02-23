@@ -11,6 +11,7 @@
 # and so on) as they will fail if something goes wrong.
 
 alias Freegiving.{Accounts, Fundraisers}
+alias Freegiving.Fundraisers.{School, Store, PaymentService, Contact, PaymentMethod}
 
 Accounts.register_admin(%{
   email: "jean.f.cloutier@gmail.com",
@@ -24,30 +25,31 @@ Accounts.register_user(%{
   password_confirmation: "12345678abc"
 })
 
-Fundraisers.register_school(%{
+School.register_school(%{
   name: "Casco Bay High School",
   short_name: "cbhs",
   address: "196 Allen Ave, Portland, ME 04103"
 })
 
-Fundraisers.register_store(%{
+Store.register_store(%{
   name: "Hannaford",
   short_name: "hannaford",
   address: "145 Pleasant Hill Road, Scarborough, ME 04074"
 })
 
-Fundraisers.register_payment_service(%{
+PaymentService.register_payment_service(%{
   name: "PayPal",
-  url: "www.paypal.com"
+  url: "www.paypal.com",
+  email_domain: "paypal.com"
 })
 
-Fundraisers.register_contact(%{
+Contact.register_contact(%{
   name: "John Q. Manager",
   email: "test@yourgrocerycard.gives",
   phone: "207-555-1212"
 })
 
-Fundraisers.register_contact(%{
+Contact.register_contact(%{
   name: "Jean-Francois Cloutier",
   email: "jean.f.cloutier@gmail.com",
   phone: "207-615-3049",
@@ -79,7 +81,7 @@ Fundraisers.register_fundraiser_admin(
   fundraiser_id: fundraiser.id
 )
 
-Fundraisers.register_payment_method(%{payable_to: "dev@yourgrocerycardgives.com"},
+PaymentMethod.register_payment_method(%{payable_to: "dev@yourgrocerycardgives.com"},
   fundraiser_id: fundraiser.id,
   payment_service_name: "PayPal"
 )

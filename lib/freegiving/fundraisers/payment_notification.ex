@@ -2,6 +2,9 @@ defmodule Freegiving.Fundraisers.PaymentNotification do
   use Ecto.Schema
   import Ecto.Changeset, warn: false
   alias Freegiving.Fundraisers.Payment
+  alias __MODULE__
+  use Freegiving.Eventing
+  alias Freegiving.Repo
 
   schema "payment_notifications" do
     field :amount, :integer
@@ -33,5 +36,13 @@ defmodule Freegiving.Fundraisers.PaymentNotification do
       :payment_locator
     ])
     |> validate_number(:amount, greater_than: 0)
+  end
+
+  def register_payment_notification(attrs) do
+    pub(:added) do
+      %PaymentNotification{}
+      |> PaymentNotification.changeset(attrs)
+      |> Repo.insert()
+    end
   end
 end

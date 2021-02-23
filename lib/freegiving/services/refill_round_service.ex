@@ -30,7 +30,7 @@ defmodule Freegiving.Services.RefillRoundService do
           |> RefillRound.changeset(%{closed_on: utc_ts()})
           |> Repo.update!()
 
-        Fundraisers.start_new_refill_round!(fundraiser)
+        RefillRound.start_new_refill_round!(fundraiser)
         closed_refill_round
       end)
     end

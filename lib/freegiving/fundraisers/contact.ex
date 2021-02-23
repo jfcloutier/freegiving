@@ -2,6 +2,9 @@ defmodule Freegiving.Fundraisers.Contact do
   use Ecto.Schema
   import Ecto.Changeset, warn: false
   alias Freegiving.Fundraisers.{Fundraiser, Participant, FundraiserAdmin}
+  alias __MODULE__
+  use Freegiving.Eventing
+  alias Freegiving.Repo
 
   schema "contacts" do
     field :name, :string, null: false
@@ -23,5 +26,23 @@ defmodule Freegiving.Fundraisers.Contact do
       message: "must look like 207-555-1212"
     )
     |> unique_constraint(:email)
+  end
+
+  def register_contact(attrs) do
+    pub(:added) do
+      %Contact{}
+      |> Contact.changeset(attrs)
+      |> Repo.insert()
+    end
+  end
+
+  def register_contact_if_new(%{email: email} = attrs) do
+    case Repo.get_by(Contact, email: email) do
+      nil ->
+        register_contact(attrs)
+
+      contact ->
+        {:ok, contact}
+    end
   end
 end
