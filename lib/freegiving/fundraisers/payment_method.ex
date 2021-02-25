@@ -8,8 +8,8 @@ defmodule Freegiving.Fundraisers.PaymentMethod do
 
   schema "payment_methods" do
     field :payable_to, :string
-    belongs_to :fundraiser, Fundraiser
     has_many :card_refills, CardRefill
+    belongs_to :fundraiser, Fundraiser
     belongs_to :payment_service, PaymentService
     timestamps()
   end
