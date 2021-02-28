@@ -9,7 +9,8 @@ defmodule Freegiving.Fundraisers.Fundraiser do
     Participant,
     FundraiserAdmin,
     Contact,
-    GiftCard
+    GiftCard,
+    PaymentMethod
   }
 
   alias __MODULE__
@@ -31,6 +32,7 @@ defmodule Freegiving.Fundraisers.Fundraiser do
     has_many :refill_rounds, RefillRound
     has_many :participants, Participant
     has_many :fundraiser_admins, FundraiserAdmin
+    has_many :payment_method, PaymentMethod
     timestamps()
   end
 

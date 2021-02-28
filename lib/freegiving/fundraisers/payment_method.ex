@@ -1,14 +1,14 @@
 defmodule Freegiving.Fundraisers.PaymentMethod do
   use Ecto.Schema
   import Ecto.Changeset, warn: false
-  alias Freegiving.Fundraisers.{CardRefill, PaymentService, Fundraiser}
+  alias Freegiving.Fundraisers.{Payment, PaymentService, Fundraiser}
   alias __MODULE__
   use Freegiving.Eventing
   alias Freegiving.Repo
 
   schema "payment_methods" do
     field :payable_to, :string
-    has_many :card_refills, CardRefill
+    has_many :payments, Payment
     belongs_to :fundraiser, Fundraiser
     belongs_to :payment_service, PaymentService
     timestamps()

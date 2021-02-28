@@ -100,6 +100,5 @@ PaymentMethod.register_payment_method(%{payable_to: "dev@yourgrocerycardgives.co
 
 {:ok, card_refill} =
   Fundraisers.request_card_refill(%{amount: 500},
-    card_number: assigned_gift_card.card_number,
-    payment_service_name: "PayPal"
+    card_number: assigned_gift_card.card_number
   )

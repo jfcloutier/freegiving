@@ -4,6 +4,6 @@
 
 ## Relations
 
-has many [[card_refill]]
+has many [[payment]]
 belongs to [[fundraiser]]
 belongs to [[payment_service]]

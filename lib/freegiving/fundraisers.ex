@@ -11,7 +11,6 @@ defmodule Freegiving.Fundraisers do
   alias Freegiving.Fundraisers.{
     School,
     Store,
-    PaymentMethod,
     Contact,
     Fundraiser,
     Participant,
@@ -146,8 +145,7 @@ defmodule Freegiving.Fundraisers do
   end
 
   def request_card_refill(attrs,
-        card_number: card_number,
-        payment_service_name: payment_service_name
+        card_number: card_number
       ) do
     pub(:added) do
       Repo.transaction(fn ->
@@ -156,13 +154,11 @@ defmodule Freegiving.Fundraisers do
         card_refill_with_fundraiser = Repo.preload(gift_card, :fundraiser)
         fundraiser_id = card_refill_with_fundraiser.fundraiser.id
         Fundraiser.fundraiser_active!(fundraiser_id)
-        payment_method = PaymentMethod.payment_method(fundraiser_id, payment_service_name)
         current_refill_round = current_refill_round(fundraiser_id)
 
         %CardRefill{
           gift_card_id: gift_card.id,
-          refill_round_id: current_refill_round.id,
-          payment_method_id: payment_method.id
+          refill_round_id: current_refill_round.id
         }
         |> CardRefill.changeset(attrs)
         |> Repo.insert()

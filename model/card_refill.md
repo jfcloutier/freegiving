@@ -1,7 +1,9 @@
 # Card refill
 
-## Links
+## Properties
 
-may have one [[payment]]
-belongs to [[refill_round]]
+## Relations
+
 belongs to [[gift_card]]
+belongs to [[refill_round]]
+belongs to [[payment]]

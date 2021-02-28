@@ -8,9 +8,9 @@ defmodule Freegiving.Fundraisers.Payment do
 
   schema "payments" do
     field :amount, :integer
-    belongs_to :card_refill, CardRefill
     belongs_to :payment_method, PaymentMethod
     belongs_to :payment_notification, PaymentNotification
+    has_one :card_refill, CardRefill
     timestamps()
   end
 
@@ -28,4 +28,5 @@ defmodule Freegiving.Fundraisers.Payment do
       |> Repo.insert()
     end
   end
+
 end

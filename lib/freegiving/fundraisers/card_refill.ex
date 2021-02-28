@@ -1,14 +1,13 @@
 defmodule Freegiving.Fundraisers.CardRefill do
   use Ecto.Schema
   import Ecto.Changeset, warn: false
-  alias Freegiving.Fundraisers.{GiftCard, RefillRound, PaymentMethod}
+  alias Freegiving.Fundraisers.{GiftCard, RefillRound, Payment}
 
   schema "card_refills" do
     field :amount, :integer
     belongs_to :gift_card, GiftCard
     belongs_to :refill_round, RefillRound
-    # TODO replace by - has_one :payment, Payment
-    belongs_to :payment_method, PaymentMethod
+    belongs_to :payment, Payment
     timestamps()
   end
 

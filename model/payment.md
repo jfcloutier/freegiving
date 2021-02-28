@@ -1,6 +1,8 @@
 # Payment
 
+## Properties
 
-belongs to [[card_refill]]
+## Relations
+has one [[card_refill]]
 belongs to [[payment_method]]
 belongs to [[payment_notification]]
