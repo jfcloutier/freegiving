@@ -28,5 +28,4 @@ defmodule Freegiving.Fundraisers.Payment do
       |> Repo.insert()
     end
   end
-
 end

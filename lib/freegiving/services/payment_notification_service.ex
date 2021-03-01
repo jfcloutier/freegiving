@@ -35,7 +35,7 @@ defmodule Freegiving.Services.PaymentNotificationService do
         payment_locator: payment_locator
       })
 
-      # TODO - in a transaction register payment and associate card_refill to payment
+    # TODO - in a transaction register payment and associate card_refill to payment
     with {:ok, payment_service} <- PaymentService.from_email(paid_from_email),
          {:ok, payment_method} <- find_payment_method(payment_service, paid_to_email),
          {:ok, fundraiser} <- find_fundraiser(payment_method),

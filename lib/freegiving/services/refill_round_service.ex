@@ -24,7 +24,7 @@ defmodule Freegiving.Services.RefillRoundService do
         fundraiser = Repo.get_by(Fundraiser, id: fundraiser_id)
 
         closed_refill_round =
-          Fundraisers.current_refill_round(fundraiser)
+          Fundraisers.current_refill_round!(fundraiser)
           |> Repo.preload(:fundraiser)
           |> Repo.preload(:card_refills)
           |> RefillRound.changeset(%{closed_on: utc_ts()})

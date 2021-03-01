@@ -111,7 +111,7 @@ defmodule Freegiving.Fundraisers do
   def assign_gift_card(attrs, participant_id: participant_id) do
     pub(:gift_card_assigned) do
       Repo.transaction(fn ->
-        participant = Repo.get_by(Participant, id: participant_id)
+        participant = Repo.get_by!(Participant, id: participant_id)
 
         case Repo.all(
                from gc in "gift_cards",
@@ -149,29 +149,32 @@ defmodule Freegiving.Fundraisers do
       ) do
     pub(:added) do
       Repo.transaction(fn ->
-        gift_card = Repo.get_by(GiftCard, card_number: card_number)
+        gift_card = Repo.get_by!(GiftCard, card_number: card_number)
         gift_card_participant_active!(gift_card)
         card_refill_with_fundraiser = Repo.preload(gift_card, :fundraiser)
         fundraiser_id = card_refill_with_fundraiser.fundraiser.id
         Fundraiser.fundraiser_active!(fundraiser_id)
-        current_refill_round = current_refill_round(fundraiser_id)
+        current_refill_round = current_refill_round!(fundraiser_id)
 
         %CardRefill{
           gift_card_id: gift_card.id,
           refill_round_id: current_refill_round.id
         }
         |> CardRefill.changeset(attrs)
-        |> Repo.insert()
+        |> Repo.insert!()
       end)
     end
   end
 
-  def current_refill_round(fundraiser_id) do
+  def current_refill_round!(fundraiser_id) do
     loaded_fundraiser =
-      Repo.get_by(Fundraiser, id: fundraiser_id)
+      Repo.get_by!(Fundraiser, id: fundraiser_id)
       |> Repo.preload(:refill_rounds)
 
-    Enum.find(loaded_fundraiser.refill_rounds, &(&1.closed_on == nil))
+    case Enum.find(loaded_fundraiser.refill_rounds, &(&1.closed_on == nil)) do
+      nil -> raise "All refill rounds are closed"
+      refill_round -> refill_round
+    end
   end
 
   ### PRIVATE
